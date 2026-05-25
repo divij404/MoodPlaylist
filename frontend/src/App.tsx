@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import HomePage from "./pages/HomePage";
+import LandingPage from "./pages/LandingPage";
+import AppPage from "./pages/AppPage";
 import LibraryPage from "./pages/LibraryPage";
 
 const App: React.FC = () => {
@@ -8,7 +9,8 @@ const App: React.FC = () => {
     <div className="full-screen">
       <Navbar />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/app" element={<AppPage />} />
         <Route path="/library" element={<LibraryPage />} />
       </Routes>
     </div>

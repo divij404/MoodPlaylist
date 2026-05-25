@@ -87,36 +87,33 @@ def get_playlist():
     query = f"{mood} {genre}"
     print(f"Searching Spotify with query: '{query}'")  # Debug logging
     
+    def first_valid(items):
+        """Return the first non-None playlist item. Spotify sometimes returns null items."""
+        return next((item for item in items if item is not None), None)
+
     try:
-        results = sp.search(q=query, type='playlist', limit=1)
-        
-        # Debug: Print the raw results
-        print(f"Search results: {results}")
-        
-        # Check if there are valid items in the results
-        if not results['playlists']['items'] or results['playlists']['items'][0] is None:
-            print(f"No valid playlists found for query: '{query}'")
-            
-            # Fallback to a more generic search
-            fallback_query = genre
-            print(f"Trying fallback query: '{fallback_query}'")
-            results = sp.search(q=fallback_query, type='playlist', limit=1)
-            
-            # Check again after fallback
-            if not results['playlists']['items'] or results['playlists']['items'][0] is None:
-                return jsonify({"error": f"No playlists found for {mood}"}), 404
-        
+        # Fetch up to 10 results so we can skip any null items Spotify returns
+        results = sp.search(q=query, type='playlist', limit=10)
+        playlist_item = first_valid(results['playlists']['items'])
+
+        if playlist_item is None:
+            print(f"No valid playlists in first batch for '{query}', trying fallback")
+            results = sp.search(q=genre, type='playlist', limit=10)
+            playlist_item = first_valid(results['playlists']['items'])
+
+        if playlist_item is None:
+            return jsonify({"error": f"No playlists found for {mood}"}), 404
+
         # Access playlist details
-        playlist = results['playlists']['items'][0]['external_urls']['spotify']
-        playlist_name = results['playlists']['items'][0]['name']
+        playlist = playlist_item['external_urls']['spotify']
+        playlist_name = playlist_item['name']
         
         response_data = {
             "playlist_url": playlist,
             "playlist_name": playlist_name,
             "mood": mood
         }
-        print(f"Returning playlist: {response_data}")  # Debug logging
-        
+        print(f"Returning playlist: '{playlist_name}' for mood: {mood}")
         return jsonify(response_data)
     except spotipy.SpotifyException as e:
         print(f"Spotify API error: {str(e)}")
@@ -154,14 +151,28 @@ def save_playlist():
 def get_saved_playlists():
     try:
         conn = sqlite3.connect('playlists.db')
-        conn.row_factory = sqlite3.Row  # This enables column access by name
+        conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        c.execute('SELECT mood, url, name, timestamp FROM playlists ORDER BY timestamp DESC')
-        
+        c.execute('SELECT id, mood, url, name, timestamp FROM playlists ORDER BY timestamp DESC')
         playlists = [dict(row) for row in c.fetchall()]
         conn.close()
-        
         return jsonify({"playlists": playlists})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/delete_playlist/<int:playlist_id>', methods=['DELETE'])
+def delete_playlist(playlist_id):
+    try:
+        conn = sqlite3.connect('playlists.db')
+        c = conn.cursor()
+        c.execute('DELETE FROM playlists WHERE id = ?', (playlist_id,))
+        conn.commit()
+        deleted = c.rowcount
+        conn.close()
+        if deleted == 0:
+            return jsonify({"error": "Playlist not found"}), 404
+        return jsonify({"status": "deleted", "id": playlist_id})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
