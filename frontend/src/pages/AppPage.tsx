@@ -1,5 +1,7 @@
 // pages/AppPage.tsx
 import React, { useState, useEffect, useRef } from "react";
+
+const API = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 import TextInput from "../components/TextInput";
 import MoodDisplay from "../components/MoodDisplay";
 import PlaylistDisplay from "../components/PlaylistDisplay";
@@ -43,14 +45,14 @@ const AppPage: React.FC = () => {
     setMood(null);
     setPlaylistUrl(null);
     try {
-      const moodRes = await fetch("http://localhost:5000/analyze", {
+      const moodRes = await fetch(`${API}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
       const moodData = await moodRes.json();
       setMood(moodData.mood);
-      const playlistRes = await fetch("http://localhost:5000/playlist", {
+      const playlistRes = await fetch(`${API}/playlist`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mood: moodData.mood }),
@@ -70,7 +72,7 @@ const AppPage: React.FC = () => {
     if (!mood || !playlistUrl) return;
     setSaveLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/save_playlist", {
+      const res = await fetch(`${API}/save_playlist`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mood, playlist_url: playlistUrl, playlist_name: playlistName }),

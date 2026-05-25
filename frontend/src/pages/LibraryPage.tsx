@@ -1,5 +1,7 @@
 // pages/LibraryPage.tsx
 import React, { useState, useEffect } from "react";
+
+const API = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 import { Link } from "react-router-dom";
 
 interface SavedPlaylist {
@@ -26,7 +28,7 @@ const LibraryPage: React.FC = () => {
   const fetchPlaylists = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/saved_playlists");
+      const res = await fetch(`${API}/saved_playlists`);
       const data = await res.json();
       setPlaylists(data.playlists || []);
     } catch (err) {
@@ -41,7 +43,7 @@ const LibraryPage: React.FC = () => {
     setPlaylists(prev => prev.filter(p => p.id !== id));
     setDeletingId(id);
     try {
-      await fetch("http://localhost:5000/delete_playlist/" + id, { method: "DELETE" });
+      await fetch(`${API}/delete_playlist/${id}`, { method: "DELETE" });
     } catch (err) {
       console.error(err);
       // Re-fetch to restore state if deletion failed
