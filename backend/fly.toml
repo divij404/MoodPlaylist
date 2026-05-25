@@ -1,9 +1,9 @@
-# fly.toml — Fly.io deploy config for MoodSync backend
-app = "moodsync-api"   # change this to your chosen app name
-primary_region = "ewr" # Newark — pick closest: ord, lax, ams, syd, etc.
+# fly.toml - Fly.io deploy config for MoodPlaylist backend
+app = "moodplaylist-api"   # change this to your chosen app name
+primary_region = "ewr" # Newark - pick closest: ord, lax, ams, syd, etc.
 
 [build]
-  # Fly auto-detects Python via requirements.txt — no Dockerfile needed
+  # Fly auto-detects Python via requirements.txt - no Dockerfile needed
 
 [http_service]
   internal_port = 8080

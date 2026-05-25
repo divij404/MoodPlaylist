@@ -24,7 +24,7 @@ const Navbar: React.FC = () => {
         <div className="navbar-brand">
           <Link to="/" className="brand-link">
             <span className="brand-dot" />
-            MoodSync
+            MoodPlaylist
           </Link>
         </div>
 
